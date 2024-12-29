@@ -156,12 +156,6 @@ trade <- trade |>
     ),
     sup_region = factor(sup_region, levels = group_order, ordered = TRUE)
   )
-
-# Inspect result
-set.seed(24106075)
-trade |>
-  select(recipient, rec_region, supplier, sup_region) |>
-  sample_n(5) |> kable()
 ```
 
 
@@ -297,7 +291,7 @@ global_tiv_alltime <- trade |>
 
 global_tiv_focused + global_tiv_alltime
 ```
-![image](https://github.com/user-attachments/assets/23820236-52bf-44c7-be05-243f76862bdc)
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png)
 
 
 The period of 1994 to 2019 succeeds a strong declining trend in arms transfers orders, initiated in the late 1970’s after the series peaked as Japan signed the Guidelines for Japan-U.S. Defence Cooperation agreement. The document led to a massive procurement order to the United States and Italy, including, among other items, 282 fighter and reconnaissance aircrafts, and 3,956 surface-to-air and anti-ship missiles. Japan accounted for 34% (15,590 TIV) of the year’s total transaction value.
