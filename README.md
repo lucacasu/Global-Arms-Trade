@@ -365,6 +365,9 @@ stats_tiv_unit_plot <- trade |>
 stats_tiv_unit_plot
 stats_tiv_unit_table
 ```
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png)
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png)
+
 
 ## How have item’s value changed?
 ```r
@@ -418,6 +421,7 @@ mean_unit_tiv_yearly_plot <- trade |>
 
 mean_unit_tiv_yearly_plot
 ```
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_change.png)
 
 ## How do categories rank?
 ```r
@@ -444,8 +448,6 @@ trade_decades_category <- trade |>
       labels = c("1950", "1960", "1970", "1980", "1990", "2000", "2010"))
   )
 
-
-
 # Total TIV traded per category, decade
 trade_decades_category_sum <- trade_decades_category |>
   filter(order_year %in% c(1950:2020)) |>
@@ -454,7 +456,6 @@ trade_decades_category_sum <- trade_decades_category |>
     sum_cat_decade = sum(tiv_delivery)
   ) |>
   select(bin, sum_cat_decade)
-
 
 # Total TIV traded per decade
 # To calculate the relative % of each category
@@ -484,8 +485,6 @@ total_delivery_decades_pct <- total_delivery_decades_combined |>
     rank = rank(-pct)
   )
 
-
-
 # Colors to highlight the categories with intersting changes
 custom_colors <- c(
   "Air defence systems" = "#F8766D",
@@ -500,7 +499,6 @@ custom_colors <- c(
   "Satellites" = "grey80",
   "Other" = "grey80"
 )
-
 
 total_delivery_rank_plot <- total_delivery_decades_pct |>
   ungroup() |>
@@ -536,9 +534,6 @@ total_delivery_rank_plot <- total_delivery_decades_pct |>
     https://www.sipri.org/databases/armstransfers."
   )
 
-
-
-
 # Arm category total TIV per decade table
 
 total_tiv_decades_arm_cat <- trade_decades_category |>
@@ -562,6 +557,9 @@ total_tiv_decades_arm_cat <- trade_decades_category |>
 # total_delivery_rank_plot
 # total_tiv_decades_arm_cat
 ```
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png)
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png)
+
 
 ## Sphere of influence
 ```r
@@ -582,9 +580,7 @@ countries_suplied_focused_plot <- trade |>
   mutate(
     sup_region = case_when(
       supplier %in% c("Russia", "Soviet Union") ~ "RU+SU",
-      TRUE ~ sup_region
-    )
-  ) |>
+      TRUE ~ sup_region)) |>
   filter(
     order_year %in% c(1995:2020),
     sup_region != "OTHER"
@@ -690,54 +686,12 @@ countries_suplied_alltime_plot <- trade |>
   ) +
   scale_color_manual(values = custom_colors)
 
-
-countries_suplied_compare_table <- trade |>
-  select(order_year, rec_region, sup_region, supplier, recipient,
-         arm_cat, tiv_unit, tiv_delivery) |>
-  mutate(
-    sup_region = case_when(
-      supplier %in% c("Russia", "Soviet Union") ~ "RU+SU",
-      TRUE ~ sup_region
-    )
-  ) |>
-  filter(
-    order_year %in% c(1950:2020),
-    sup_region != "OTHER"
-  ) |>
-  group_by(order_year,sup_region) |>
-  summarise(
-    n = length(unique(recipient)),
-  ) |>
-  mutate(
-    period = case_when(
-      order_year %in% c(1950:1959) ~ 1950,
-      order_year %in% c(1960:1969) ~ 1960,
-      order_year %in% c(1970:1979) ~ 1970,
-      order_year %in% c(1980:1989) ~ 1980,
-      order_year %in% c(1990:1999) ~ 1990,
-      order_year %in% c(2000:2020) ~ 2000,
-    )
-  ) |>
-  group_by(sup_region, period) |>
-  summarise(
-    mean = round(mean(n))
-  ) |>
-  pivot_wider(
-    names_from = period, values_from = mean
-  ) |>
-  rename(Supplier = sup_region) |>
-  kable()
-
-
-# OUTPUT:
-# countries_suplied_focused_plot + countries_suplied_alltime_plot
-# countries_suplied_compare_table
+countries_suplied_focused_plot + countries_suplied_alltime_plot
 ```
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/sphere.png)
 
 ### Linear regression
 ```r
-#| label: "T1_code_lm"
-
 data <- trade |>
   select(order_year, rec_region, sup_region, supplier, recipient,
          arm_cat, tiv_unit, tiv_delivery) |>
@@ -773,9 +727,6 @@ outlier_lm_plot <- data |>
   ) +
   scale_color_manual(values = custom_colors) +
   theme(plot.title = element_text(face = "bold"))
-  
-outlier_lm_plot
-
 
 # Filter the data by Supplier
 data_us <- filter(data, sup_region == "US")
@@ -829,10 +780,10 @@ ci_cn_upper <- round(slope_cn + t_critic * Sb_cn, 4)
 lm_results_table <- tribble(
   ~Supplier, ~Slope, ~p_value, ~ci_lower, ~ci_upper, ~Decision, 
   "US", slope_us, p_us, ci_us_lower, ci_us_upper, "Reject Null",
-  "EU", slope_eu, p_eu, ci_eu_lower, ci_eu_upper, "Reject Null", 
+  "EU", slope_eu, p_eu, ci_eu_lower, ci_eu_upper, "Fail to Reject Null", 
   "RU", slope_ru, p_ru, ci_ru_lower, ci_ru_upper, "Fail to Reject Null", 
   "CN", slope_cn, p_cn, ci_cn_lower, ci_cn_upper, "Reject Null", 
-) 
+)
 
 lm_results_table$p_value[1] <- "<0.0001"
 lm_results_table$p_value[4] <- "<0.0001"
@@ -843,6 +794,8 @@ lm_results_table <- lm_results_table |> kable()
 
 lm_results_table
 ```
+
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/reg_stats.png)
 
 ## Distribution of Transactions
 ```r
@@ -876,7 +829,6 @@ sup_trans_table_param <- trade |>
 sup_trans_table_param <- kable(sup_trans_table_param)
 
 
-
 # Filter only outliers to be used as labels in the next chart
 outliers <- trade |>
   select(order_year, rec_region, sup_region, recipient,
@@ -897,7 +849,6 @@ outliers <- trade |>
     (sup_region == "CN" & n > 44)
   ) |> 
   arrange(sup_region, n)
-
 
 
 sup_trans_plot <- trade |>
@@ -943,9 +894,9 @@ sup_trans_plot <- trade |>
   ) +
   theme(plot.title = element_text(face = "bold"))
 
-# OUTPUT:
-# sup_trans_plot
+sup_trans_plot
 ```
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/transactions.png)
 
 ## Supplier’s share of arms category
 ```r
@@ -1007,7 +958,7 @@ cat_share_plot <- trade |>
   
   cat_share_plot
 ```
-
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png)
 
 
 ## Afinity
@@ -1056,12 +1007,8 @@ HHI <- HHI |>
   left_join(shares_tiv_sum, by = "recipient", unmatched = "drop") |>
   left_join(trade |> select(recipient, rec_region) |> distinct(), by = "recipient", unmatched = "drop")
 
-
-
 HHI <- HHI |>
   left_join(cont_reference, by = "rec_region", unmatched = "drop")
-
-
 
 HHI_quant <- quantile(HHI$HHI)
 
@@ -1111,13 +1058,13 @@ affinity_plot <- ggtern::ggtern(HHI2,
   scale_size_continuous(range=c(1,12)) +
   guides(fill = guide_legend(override.aes = list(size = 5))) +
   scale_alpha(guide = 'none')
-  
 
 affinity_plot_faceted <- affinity_plot + facet_wrap(~qt)
 
 
 affinity_plot
-
 affinity_plot_faceted
 ```
+
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity.png)
 
