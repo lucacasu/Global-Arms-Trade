@@ -4,6 +4,33 @@ The United States, European Union, Russia, and more recently China, have dominat
 
 Using the Stockholm International Peace Research Institute (SIPRI) database, **this project analyzes key metrics of the global arms trade between 1995 and 2020**, with historical data for context. I also analyse how the leading global arms suppliers leverage exports as a foreign policy tool.
 
+<details>
+<summary>Long context</summary>
+The late 20th century was a period of turbulent transition. The end of the imminent mutual nuclear destruction threat, marked by the dissolution of the Soviet Union and the conclusion of the Cold War, leveraged an era of renewed international cooperation effort.
+
+In 1993, American President Bill Clinton and Russian President Boris Yeltsin agreed on negotiating a comprehensive test ban on nuclear weapons, reaffirming the commitment to the 1968 Non-Proliferation Treaty (NPT). The year had seen the lowest number of nuclear tests while international politics researchers elaborated over a future without the preceding bipolar world order.
+
+The concept of self-determination re-emerged, driving the reorganization of alliances and shifting the balance of power. A time of relative peace allowed previously constrained countries to focus on social and political advancement as democracies capitalized on the technological progress and inter-state relations developed during the past decades. The European Union was officially created in 1995, seeing further expansion in the following decade. Western and Eastern economies became intertwined by the trade of critical resources and goods while countries like China, South Korea, Turkey, United Arab Emirates, Brazil and India underwent significant modernization and assumed pronounced positions in global trade.
+
+Most of the major armed conflicts in the following decades were internal territorial disputes by indigenous groups in the Middle-East and Africa, added to localized conflicts in the post-soviet countries. Inter-state hostilities were mostly limited to political rhetorics and commercial disputes.
+
+Nevertheless, instability continued to be the norm in international politics. With improved economies, military power imbalance was gradually reduced as nations raced to achieve regional parity and establish deterrence to future aggression. Players in a free market, countries engaged in fierce competition for either supply or demand of military resources, offering a rnewed path to the international arms trade.
+
+For importers, the cost of security is beyond financial. Supplier countries may be legally bound by international treaties to the consequences of the use of such weapons by the receiving country, including violations of human rights or humanitarian law. In most cases, the transfers come as a result, or predecessor, of significant inter-state cooperation, effectively restricting the trade possibilities to the supplier’s antagonists. Beyond the political implications, the cost of operating a diverse set of weapons from different countries is a significant long-term financial burden for smaller nations.
+
+For exporters, the sale of weapons is a major diplomatic soft power, opening or solidifying partnerships that may now or in the future guarantee their own geopolitical interests. The privileged access to critical natural and technological resources, such as oil, metals or microprocessors, along with the control of buffer zones that set them apart from future direct confrontation are some of the key benefits of the arms trade.
+
+The United States, European Union, Russia, and more recently China have dominated the arms production sector. The runner-up, while China is mainly focused on its own modernization, specialists suggest its military budget is far higher than what it officially reports, emphasizing the investments in research and development programs dedicated to achieve parity to its American counterpart.
+
+The United States and European Union intensely cooperated throughout the decades, leveraging state-of-the-art projects such as the Joint Strike Fighter program, leading to the fifth-generation F-35 fighter. The North Atlantic Treaty Organization (NATO), initially founded to defend against the Soviet threat, expanded to most of Eastern Europe. Despite the standards governing the issuing arms trade licenses evolving along the past decades, both suppliers are linked to major violations of human rights through the use of its assets.
+
+Russia leveraged the well-established Soviet-era military complex and its vast stockpiles of machinery and ordinance to continue influencing nations in Africa and the Middle-East, where low-tech conflicts are mostly impacted by its supplies. Despite its comparatively limited technological advancements, Russia still delivered significant achievements. In partnership with India, the leading buyer of conventional arms, it developed the medium-range ramjet supersonic cruise missile BrahMos, capable of flying at Mach 3.5 and overcoming most modern air defence systems.
+
+Using the Stockholm International Peace Research Institute (SIPRI) database, **this project analyzes key metrics of the global arms trade between 1995 and 2020**, with historical data for context. I also analyse how the leading global arms suppliers leverage exports as a foreign policy tool.
+
+The European Union (EU) member states list evolves along the 26-year series, according to the respective year of ascension of each member.
+</details>
+
 # The data
 
 The Stockholm International Peace Research Institute (SIPRI) database is the most comprehensive resource for analyzing  imports and exports of conventional weapons. It is maintained by an independent institute dedicated to the study of international conflicts, armaments, arms control and disarmament policies.
@@ -33,7 +60,7 @@ f2 <- read.csv("country_region.csv")
 region_map <- as_tibble(f2)
 ```
 
-## Inspect and pre-processing
+## Inspect and pre-process
 
 ### Import the data and clean columns
 
