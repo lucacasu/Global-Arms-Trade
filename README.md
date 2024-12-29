@@ -294,16 +294,6 @@ global_tiv_focused + global_tiv_alltime
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png)
 
 
-The period of 1994 to 2019 succeeds a strong declining trend in arms transfers orders, initiated in the late 1970’s after the series peaked as Japan signed the Guidelines for Japan-U.S. Defence Cooperation agreement. The document led to a massive procurement order to the United States and Italy, including, among other items, 282 fighter and reconnaissance aircrafts, and 3,956 surface-to-air and anti-ship missiles. Japan accounted for 34% (15,590 TIV) of the year’s total transaction value.
-
-The trend was reversed from 1995 as China (3,451 TIV) and India procured Su-27S fighter aircrafts, missiles, and other aerial and ground systems from Russia, along with Swiss radars for anti-aircraft weapons. China figured among the leading buyers until 2006, accounting for up to 21% of the yearly global trade.
-
-India remains a leading buyer to date, consistently hitting more than 10% of the global trade. It peaked in 2001 with a remarkable share of 37% (10,521 TIV), mostly through the acquisition of 140 Russian Su-30MK fighters. Saudi Arabia was the only country to reach a similar share, hitting 36% (11,744 TIV) in 2011, mainly from American F-15 Advanced fighters and missile systems.
-
-Some countries presented notable relations with competing powers. In 1998, UAE (716 TIV) ordered 62 French Mirage 2000 along with 3,997 missiles, which were complemented in 2000 (3,936 TIV) by 80 American F-16E fighter aircrafts and 1,250 Russian surface-to-air missile systems. Pakistan represented 8% (1,917 TIV) of the year’s trade through 1,054 American armoured personnel carriers and 430 Chinese tanks.
-
-The series had a localised peak between 2005 and 2015, averaging 27,605 TIV per year but rapidly decreasing to reach a new all-time low of 11,795 in 2019.
-
 ## How valuable are the assets traded?
 This box plot displays the distribution of TIV values for each Arms Category. Since values range from 0.004 to 1250, with some lower value categories being nearly omitted in the plot, I scaled the x-axis by log10() to better represent their distribution. Along the plot code, an auxiliary column mean_sort is used to organize the y-axis in descending order by the mean unit TIV.
 
@@ -365,7 +355,9 @@ stats_tiv_unit_plot <- trade |>
 stats_tiv_unit_plot
 stats_tiv_unit_table
 ```
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png)
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png)
 
 
@@ -557,6 +549,7 @@ total_tiv_decades_arm_cat <- trade_decades_category |>
 # total_delivery_rank_plot
 # total_tiv_decades_arm_cat
 ```
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png)
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png)
 
@@ -1065,6 +1058,15 @@ affinity_plot_faceted <- affinity_plot + facet_wrap(~qt)
 affinity_plot
 affinity_plot_faceted
 ```
+The following plot maps the receiver countries by the share of TIV acquired from suppliers in the West (US, EU), East (RU, CN) and Others. The bubble size indicates the country’s total TIV between 1995 and 2020. 
+
+To split the plot by market concentration, I mapped the Herfindahl–Hirschman index (HHI) to the bubble colours, where darker indicates higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
+
+Three key insights are observed:
+
+- Those who mainly buy from Other suppliers account for decimal shares of the global market. Powerful nations tend to be aligned to either Western or Eastern suppliers. In Q1, the major buyer from Others in the Western axis is the United States.
+- **Q2, Q3, Q4:** More countries are strongly aligned to Western suppliers, and these countries tend to have larger budgets.  In ⁰Q3, the single major trade in the Eastern axis  happens between its own suppliers (China and Russia).
+- **Q1:** India and Pakistan are the exception among countries with low market concentration. Buyers closer to the Eastern axis are mostly small nations that also buy 30-60% from Others. In the Western axis, Indonesia, Thailand, Malaysia and Iraq account for the most of the trade.
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png)
 
