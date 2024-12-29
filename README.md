@@ -1066,5 +1066,5 @@ affinity_plot
 affinity_plot_faceted
 ```
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity.png)
+![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png)
 
