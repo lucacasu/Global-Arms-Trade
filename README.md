@@ -1128,7 +1128,7 @@ Russia has seen dwindling shares along the period, particularly in Aircraft, Art
 
 The United States has the most capable navy, but this does not reflect in American Ships exports. Its share is a fraction of small European nations. This is mainly a result of two factors: the scale and sophistication of US vessels is beyond what any other buying nation requires or is capable of maintaining; and the US has faced challenges to produce for its internal market since its vessel requirements have grown beyond the existing shipbuilding yards’ capacity. On the other hand, it controls  most of the Armoured Vehicles, Missiles, Naval Weapons, Aircraft and Air defence systems supply.
 
-Russia’s share of Air Defence Systems is driven by the successful Tunguska and Pantsyr self-propelled models, which represent 28% of its exports and place it ahead of the US despite having a lower share of surface-air missiles. The export of  Engines is entirely reliant on India and China’s acquisition of 1970’s turbofans for Sukhoi fighter jets.
+Russia’s share of Air Defence Systems is driven by the successful Tunguska and Pantsyr self-propelled models, which represent 28% of its exports and places it ahead of the US, despite having a lower share of surface-air missiles. The export of  Engines is entirely reliant on India and China’s acquisition of 1970’s turbofans for Sukhoi fighter jets.
 
 <div align="center">
   <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png" class="center" height="600">
@@ -1138,9 +1138,9 @@ Russia’s share of Air Defence Systems is driven by the successful Tunguska and
 
 ## How dependent is each country on Western or Eastern suppliers?
 
-The following plot maps the receiver countries by the share of TIV acquired from suppliers in the West (US, EU), East (RU, CN) and Others. The bubble size indicates the country’s total TIV between 1995 and 2020. 
+The following plot maps the receiver countries closer to Western (US, EU), Easter (RU, CN) or OTHER suppliers according to their market shares. The bubble size indicates the country’s total TIV between 1995 and 2020. 
 
-To split the plot by market concentration, the Herfindahl–Hirschman index (HHI) is mapped to the bubble colours, indicating higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
+To split the plot by market concentration, the Herfindahl–Hirschman index (HHI) is mapped to the bubble colours, indicating higher concentration by one supplier axis. The [HHI](https://www.investopedia.com/terms/h/hhi.asp) is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
 
 Three key insights are observed:
 
