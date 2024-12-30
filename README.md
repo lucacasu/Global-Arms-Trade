@@ -38,9 +38,8 @@ The United States and European Union intensely cooperated throughout the decades
 
 Russia leveraged the well-established Soviet-era military complex and its vast stockpiles of machinery and ordinance to continue influencing nations in Africa and the Middle-East, where low-tech conflicts are mostly impacted by its supplies. Despite its comparatively limited technological advancements, Russia still delivered significant achievements. In partnership with India, the leading buyer of conventional arms, it developed the medium-range ramjet supersonic cruise missile BrahMos, capable of flying at Mach 3.5 and overcoming most modern air defence systems.
 
-Using the Stockholm International Peace Research Institute (SIPRI) database, **this project analyzes key metrics of the global arms trade between 1995 and 2020**, with historical data for context. I also analyse how the leading global arms suppliers leverage exports as a foreign policy tool.
+This project utilizes the Stockholm International Peace Research Institute (SIPRI) database to analyze key metrics of the global arms trade. It compares the performance of the US, EU, Russia, and China from 1995 to 2020, providing historical data for context.
 
-The European Union (EU) member states list evolves along the 26-year series, according to the respective year of ascension of each member.
 </details>
 
 <br>
