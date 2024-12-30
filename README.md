@@ -1,8 +1,20 @@
 # Context
 
-The United States, European Union, Russia, and more recently China, have dominated the arms production sector. 
+The arms production industry has long been dominated by the United States, European Union, Russia, and, more recently, China.
 
-Using the Stockholm International Peace Research Institute (SIPRI) database, **this project analyzes key metrics of the global arms trade between 1995 and 2020**, with historical data for context. I also analyse how the leading global arms suppliers leverage exports as a foreign policy tool.
+This project utilizes the Stockholm International Peace Research Institute (SIPRI) database to analyze key metrics of the global arms trade. It compares the performance of the US, EU, Russia, and China from 1995 to 2020, providing historical data for context.
+
+<b>About the Arms Trade Data:</b>
+1. [How has the trade volume evolved over time?](url)
+2. What is the value of the assets being traded?
+3. How has the value of these items changed?
+4. How have different categories ranked in each decade?
+
+<b>About the Competition:</b>
+1. Have suppliers expanded their spheres of influence?
+2. Who are the most frequent buyers for each supplier?
+3. How have market shares shifted?
+4. How dependent is each country on Western or Eastern suppliers?
 
 <details>
 <summary>Long context</summary>
@@ -37,7 +49,9 @@ The Stockholm International Peace Research Institute (SIPRI) database is the mos
 
 **The key metric in the Arms Transfers database is the Total Indicator Value (TIV)**. It overcomes challenges imposed by currency and market value of assets by assigning a standardized value to military equipment based on its type, capability and estimated production cost. Thus, it is not a direct representation of financial value but instead a measure of military capability.
 
-## Imports
+<details>
+<summary><b>[CODE] Import packages and datasets</b></summary>
+  
 ```r
 library(tidyverse)
 library(skimr)
@@ -59,10 +73,18 @@ trade <- as_tibble(f)
 f2 <- read.csv("country_region.csv")
 region_map <- as_tibble(f2)
 ```
+</details>
 
 ## Inspect and pre-process
 
-### Import the data and clean columns
+The data contains the names of supplier and receiver countries, but has no indication of their region or economic blocks. This information in fundamental throughout this analysis. As explained further in the next sections, this analysis will mainly cover the supply from United States, European Union, Russia and China.
+
+The following code maps a "EU" label to European countries according to their date of ascension to the block. Lists for each milestone year (1994, 1995, 2004, 2007, 2013) are set with the respective members.
+
+Labels for United States (US), Russia (RU), and China (CN) are assigned based on their names. Remaining countries are labeled OTHER.
+
+<details>
+<summary><b>[CODE] Clean columns</b></summary>
 
 ```r
 trade <- janitor::clean_names(trade)
@@ -86,9 +108,13 @@ trade$supplier <- factor(trade$supplier, ordered = FALSE)
 trade$recipient <- factor(trade$recipient, ordered = FALSE)
 trade$arm_cat <- factor(trade$arm_cat, ordered = FALSE)
 ```
+</details>
 
 While inspecting the data I noted that tiv_unit is rounded to two decimal places, which caused some items to be valued at 0 TIV when they were transferred in used condition. In such cases, the TIV value is multiplied by 0.4. I fixed this rounding omission by recalculating the unit value with the sipri_estimate * 0.4 where tiv_unit was 0.
 
+<details>
+<summary><b>[CODE] Fix rounding omission</b></summary>
+  
 ```r
 # Fixing rounding omission
 
@@ -97,14 +123,10 @@ trade$tiv_unit <- case_when(
   TRUE ~ trade$tiv_unit
 )
 ```
+</details>
 
-The data contains the names of supplier and receiver countries, but has no indication of their region or economic blocks. This information in fundamental throughout this analysis. As explained further in the next sections, this analysis will mainly cover the supply from United States, European Union, Russia and China.
-
-The following code maps a "EU" label to European countries according to their date of ascension to the block. Lists for each milestone year (1994, 1995, 2004, 2007, 2013) are set with the respective members.
-
-Labels for United States (US), Russia (RU), and China (CN) are assigned based on their names. Remaining countries are labeled OTHER.
-
-### Label EU countries by date of ascension.
+<details>
+<summary><b>[CODE] Map EU countries by ascension date</b></summary>
 
 ```r
 # EU member list by year
@@ -184,12 +206,12 @@ trade <- trade |>
     sup_region = factor(sup_region, levels = group_order, ordered = TRUE)
   )
 ```
+</details>
 
+<details>
+<summary><b>[CODE] Basic statistics</b></summary>
 
-## Dataset statistics
-```r   
-# Some of these values are already visible in the skim output
-
+```r
 # N suppliers
 stat_n_sup <- length(unique(trade$supplier))
 
@@ -225,8 +247,13 @@ sipri_stats <- tribble(
 
 sipri_stats
 ```
+</details>
 
 ## How has trade volume changed?
+
+<details>
+<summary><b>[CODE] Global Trade Volume</b></summary>
+  
 ```r
 global_tiv_focused <- trade |>
   filter(
@@ -318,6 +345,8 @@ global_tiv_alltime <- trade |>
 
 global_tiv_focused + global_tiv_alltime
 ```
+</details>
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png)
 
 
@@ -326,6 +355,9 @@ This box plot displays the distribution of TIV values for each Arms Category. Si
 
 To inform the actual values, the stats_tiv_unit_table shows the mean, median, min and max, and the coefficient of variation of each category.
 
+<details>
+<summary><b>[CODE] Distribution of Unit TIV per category</b></summary>
+  
 ```r
 # TIV unit per category (all time)
 
@@ -382,13 +414,18 @@ stats_tiv_unit_plot <- trade |>
 stats_tiv_unit_plot
 stats_tiv_unit_table
 ```
+</details>
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png)
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png)
 
 
-## How have item’s value changed?
+## How Have Items' Value Changed?
+
+<details>
+<summary><b>[CODE] Mean Unit TIV Change per Category</b></summary>
+
 ```r
 # TIV Unit per category year breakdown
 
@@ -440,9 +477,15 @@ mean_unit_tiv_yearly_plot <- trade |>
 
 mean_unit_tiv_yearly_plot
 ```
+</details>
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_change.png)
 
-## How do categories rank?
+## How Have Categories Ranked in Each Decade?
+
+<details>
+<summary><b>[CODE] Categories Ranked</b></summary>
+
 ```r
 # Define the base for the next charts. Add Category Group + year bin
 trade_decades_category <- trade |>
@@ -576,12 +619,17 @@ total_tiv_decades_arm_cat <- trade_decades_category |>
 # total_delivery_rank_plot
 # total_tiv_decades_arm_cat
 ```
+</details>
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png)
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png)
 
 
-## Sphere of influence
+## Have Suppliers Expanded Their Sphere of Influence? 
+
+<details>
+<summary><b>[CODE] Sphere of Influence</b></summary>
+
 ```r
 custom_colors <- c(
   "US" = "#003E8A",
@@ -590,7 +638,6 @@ custom_colors <- c(
   "RU+SU" = "#D62718",
   "CN" = "#FF9D00"
 )
-
 
 # How many countries have been supplied by each power? (focused)
 
@@ -708,9 +755,15 @@ countries_suplied_alltime_plot <- trade |>
 
 countries_suplied_focused_plot + countries_suplied_alltime_plot
 ```
+</details>
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/sphere.png)
 
-### Linear regression
+### Linear Regression
+
+<details>
+<summary><b>[CODE] Linear Regression</b></summary>
+
 ```r
 data <- trade |>
   select(order_year, rec_region, sup_region, supplier, recipient,
@@ -814,12 +867,20 @@ lm_results_table <- lm_results_table |> kable()
 
 lm_results_table
 ```
+</details>
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/reg_stats.png)
 
-## Distribution of Transactions
+## Who Are the Most Frequent Buyers?
+
+<details>
+<summary><b>[CODE] Distribution of Transactions</b></summary>
+
 ```r
 # Get outliers threshold for each supplier (number of transactions)
+
+# This table is not plottled. It gives the upper bound
+# to define extreme values in the next plot
 
 sup_trans_table_param <- trade |>
   select(order_year, rec_region, sup_region,
@@ -844,8 +905,6 @@ sup_trans_table_param <- trade |>
   rename(Supplier = sup_region) |>
   arrange(desc(upper_bound))
 
-# This table is not plottled. It gives the upper bound
-# to define extreme values in the next plot
 sup_trans_table_param <- kable(sup_trans_table_param)
 
 
@@ -916,9 +975,15 @@ sup_trans_plot <- trade |>
 
 sup_trans_plot
 ```
+</details>
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/transactions.png)
 
-## Supplier’s share of arms category
+## Supplier’s Share of Arms Category
+
+<details>
+<summary><b>[CODE] Supplier’s Share of Arms Category</b></summary>
+
 ```r
 # BETWEEN 1995-2020 ----------
 
@@ -978,10 +1043,27 @@ cat_share_plot <- trade |>
   
   cat_share_plot
 ```
+</details>
+
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png)
 
 
-## Afinity
+## Afinity to Supplier
+
+The following plot maps the receiver countries by the share of TIV acquired from suppliers in the West (US, EU), East (RU, CN) and Others. The bubble size indicates the country’s total TIV between 1995 and 2020. 
+
+To split the plot by market concentration, I mapped the Herfindahl–Hirschman index (HHI) to the bubble colours, where darker indicates higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
+
+Three key insights are observed:
+
+- Those who mainly buy from Other suppliers account for decimal shares of the global market. Powerful nations tend to be aligned to either Western or Eastern suppliers. In Q1, the major buyer from Others in the Western axis is the United States.
+- **Q2, Q3, Q4:** More countries are strongly aligned to Western suppliers, and these countries tend to have larger budgets.  In ⁰Q3, the single major trade in the Eastern axis  happens between its own suppliers (China and Russia).
+- **Q1:** India and Pakistan are the exception among countries with low market concentration. Buyers closer to the Eastern axis are mostly small nations that also buy 30-60% from Others. In the Western axis, Indonesia, Thailand, Malaysia and Iraq account for the most of the trade.
+
+
+<details>
+<summary><b>[CODE] Affinity to Supplier</b></summary>
+
 ```r
 shares_tiv <- trade |>
   filter(
@@ -1085,15 +1167,7 @@ affinity_plot_faceted <- affinity_plot + facet_wrap(~qt)
 affinity_plot
 affinity_plot_faceted
 ```
-The following plot maps the receiver countries by the share of TIV acquired from suppliers in the West (US, EU), East (RU, CN) and Others. The bubble size indicates the country’s total TIV between 1995 and 2020. 
-
-To split the plot by market concentration, I mapped the Herfindahl–Hirschman index (HHI) to the bubble colours, where darker indicates higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
-
-Three key insights are observed:
-
-- Those who mainly buy from Other suppliers account for decimal shares of the global market. Powerful nations tend to be aligned to either Western or Eastern suppliers. In Q1, the major buyer from Others in the Western axis is the United States.
-- **Q2, Q3, Q4:** More countries are strongly aligned to Western suppliers, and these countries tend to have larger budgets.  In ⁰Q3, the single major trade in the Eastern axis  happens between its own suppliers (China and Russia).
-- **Q1:** India and Pakistan are the exception among countries with low market concentration. Buyers closer to the Eastern axis are mostly small nations that also buy 30-60% from Others. In the Western axis, Indonesia, Thailand, Malaysia and Iraq account for the most of the trade.
+</details>
 
 ![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png)
 
