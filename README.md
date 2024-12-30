@@ -5,7 +5,7 @@ The arms production industry has long been dominated by the United States, Europ
 This project utilizes the Stockholm International Peace Research Institute (SIPRI) database to analyze key metrics of the global arms trade. It compares the performance of the US, EU, Russia, and China from 1995 to 2020, providing historical data for context.
 
 <b>About the Arms Trade Data:</b>
-1. [How has the trade volume evolved over time?](https://github.com/lucacasu/Global-Arms-Trade-EDA?tab=readme-ov-file#how-has-trade-volume-changed)
+1. How has the trade volume evolved over time?
 2. What is the value of the assets being traded?
 3. How has the value of these items changed?
 4. How have different categories ranked in each decade?
@@ -43,6 +43,13 @@ Using the Stockholm International Peace Research Institute (SIPRI) database, **t
 The European Union (EU) member states list evolves along the 26-year series, according to the respective year of ascension of each member.
 </details>
 
+<br>
+
+> [!NOTE]  
+> *Code and comments are available in the collapsed [CODE] sections.*
+
+<br>
+
 # The data
 
 The Stockholm International Peace Research Institute (SIPRI) database is the most comprehensive resource for analyzing  imports and exports of conventional weapons. It is maintained by an independent institute dedicated to the study of international conflicts, armaments, arms control and disarmament policies.
@@ -54,15 +61,12 @@ The Stockholm International Peace Research Institute (SIPRI) database is the mos
   
 ```r
 library(tidyverse)
-library(skimr)
 library(knitr)
 library(ggplot2)
 library(patchwork)
 library(RColorBrewer)
 library(ggrepel)
-library(gganimate)
 library(reshape2)
-library(plotly)
 library(ggtern)
 ```
 
@@ -77,11 +81,7 @@ region_map <- as_tibble(f2)
 
 ## Inspect and pre-process
 
-The data contains the names of supplier and receiver countries, but has no indication of their region or economic blocks. This information in fundamental throughout this analysis. As explained further in the next sections, this analysis will mainly cover the supply from United States, European Union, Russia and China.
-
-The following code maps a "EU" label to European countries according to their date of ascension to the block. Lists for each milestone year (1994, 1995, 2004, 2007, 2013) are set with the respective members.
-
-Labels for United States (US), Russia (RU), and China (CN) are assigned based on their names. Remaining countries are labeled OTHER.
+The dataset is quite well structured and has no missing values. The following steps just tidy the column names and input features that allow the transactions and countries to be grouped. 
 
 <details>
 <summary><b>[CODE] Clean columns</b></summary>
@@ -110,10 +110,10 @@ trade$arm_cat <- factor(trade$arm_cat, ordered = FALSE)
 ```
 </details>
 
-While inspecting the data I noted that tiv_unit is rounded to two decimal places, which caused some items to be valued at 0 TIV when they were transferred in used condition. In such cases, the TIV value is multiplied by 0.4. I fixed this rounding omission by recalculating the unit value with the sipri_estimate * 0.4 where tiv_unit was 0.
-
 <details>
 <summary><b>[CODE] Fix rounding omission</b></summary>
+
+I noted that tiv_unit is rounded to two decimal places, which led some items to be valued at 0 TIV when they were transferred in used condition. In such cases, the unit TIV value is multiplied by 0.4. I fixed this rounding omission by recalculating the unit value with the sipri_estimate * 0.4 where tiv_unit was 0.
   
 ```r
 # Fixing rounding omission
@@ -127,6 +127,10 @@ trade$tiv_unit <- case_when(
 
 <details>
 <summary><b>[CODE] Map EU countries by ascension date</b></summary>
+The data contains the supplier and receiver countries, but has no indication of their region or economic blocks. 
+The following code maps a "EU" label to European countries according to their date of ascension to the block. Lists for each milestone year (1994, 1995, 2004, 2007, 2013) are set with the respective members.
+Labels for United States (US), Russia (RU), and China (CN) are assigned based on their names. Remaining countries are labeled OTHER.
+
 
 ```r
 # EU member list by year
@@ -249,7 +253,7 @@ sipri_stats
 ```
 </details>
 
-## How has trade volume changed?
+## How has the trade volume evolved over time?
 
 <details>
 <summary><b>[CODE] Global Trade Volume</b></summary>
@@ -347,17 +351,23 @@ global_tiv_focused + global_tiv_alltime
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png)
+The period of 1995 to 20120 succeeds a strong decline in arms transfers, initiated in the late 1970’s after the series peaked as Japan signed the Guidelines for Japan-U.S. Defence Cooperation agreement. The document led to a massive procurement order to the United States and Italy, including, among other items, 282 fighter and reconnaissance aircrafts, and 3,956 surface-to-air and anti-ship missiles. Japan accounted for 34% (15,590 TIV) of the 1978's total transaction value.
 
+The trend was reversed from 1995 as China and India procured Su-27S fighter aircrafts, missiles, and other aerial and ground systems from Russia, along with Swiss radars for anti-aircraft weapons. China figured among the leading buyers until 2006, accounting for up to 21% of the yearly global trade.
 
-## How valuable are the assets traded?
-This box plot displays the distribution of TIV values for each Arms Category. Since values range from 0.004 to 1250, with some lower value categories being nearly omitted in the plot, I scaled the x-axis by log10() to better represent their distribution. Along the plot code, an auxiliary column mean_sort is used to organize the y-axis in descending order by the mean unit TIV.
+The series had a localised peak between 2005 and 2015, averaging 27,605 TIV per year but rapidly decreasing to reach a new all-time low in 2020.
 
-To inform the actual values, the stats_tiv_unit_table shows the mean, median, min and max, and the coefficient of variation of each category.
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png" class="center" height="500">
+</div>
+
+## What is the value of the assets being traded?
 
 <details>
 <summary><b>[CODE] Distribution of Unit TIV per category</b></summary>
-  
+
+This box plot displays the distribution of TIV values for each Arms Category. Some lower value categories were nearly omitted in the plot, so I scaled the x-axis by log10 to improve readability. To inform the actual values, the `stats_tiv_unit_table` shows the mean, median, min and max, and the coefficient of variation of each category.
+
 ```r
 # TIV unit per category (all time)
 
@@ -416,12 +426,24 @@ stats_tiv_unit_table
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png)
+Ships category contains the most valuable items transferred, one Russian fourth-generation Shchuka-B nuclear submarine (1,250 TIV) and one Gorshkov aircraft carrier (1,250 TIV) delivered to India in 2004, among 1,662 units with a median value of 16 TIV and a coefficient of variation (CV) of 166%. Despite that, its median value is closer to Air Defence Systems as most transfers relate to small vessels.
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png)
+Missiles account for 73.4% (2,615,610) of all items delivered. It has the lowest median value but the highest CV (330%). The American UGM-133A Trident II is a submarine-launched ballistic missile (SLBM) valued at 35 TIV, the highest in the category. A total of 72 units were ordered by the United Kingdom in 1984 and delivered between 1993 to 2004.
+
+Satellites have the highest median value of 50 TIV. However, the strategic nature of this technology makes transfers of this kind rare. Only 12 units are recorded, of which 8 are reconnaissance units and only 3 units of the French Helios-2 delivered to Morocco (2) and UAE (1) have surveillance capabilities. Due to the advanced requirements to support the operation of such assets and the critical nature of their capabilities, nations who possess these resources may rather share intelligence data with their allies on a case-by-case basis.
+
+Among aircrafts, the most valuable items are not fifth-generation fighter jets, considered to be the state-of-the-art in military technology. Instead, the E-767 Airborne Warning and Control System (AWACS) aircraft, a type of airborne command center, ranks as the highest in the category at 300 TIV. This technology is considered a force multiplier for its potential to enable communication and early warning of stealth and low-flying objects in vast areas.
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png" class="center" height="500">
+</div>
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png" class="center" height="350">
+</div>
 
 
-## How Have Items' Value Changed?
+## How has the value of these items changed?
 
 <details>
 <summary><b>[CODE] Mean Unit TIV Change per Category</b></summary>
@@ -479,9 +501,18 @@ mean_unit_tiv_yearly_plot
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_change.png)
+The mean unit TIV value of a category is not a stable figure. Technological advancements can greatly increase the military capability of assets over time. In other cases, shifting threats lead to increased demand for specific high-value assets.
 
-## How Have Categories Ranked in Each Decade?
+Sensors have become increasingly valuable, rapidly growing in average TIV from 1975 and 1995. The rise of electronic warfare is the main contemporary driver in sensor technology, along with continuous efforts to deter a nuclear threat. The FPS-132 Ballistic Missile Early Warning System radar network, produced by the United States, is valued at 200 TIV. This radar covers the North American subcontinent and is also deployed in Qatar and Taiwan.
+
+Among Air Defence Systems, the 1950’s Russian S-75 Dvina and the American Nike missile systems, valued at 17.8 and 35 TIV respectively, were the first surface-to-air missiles developed to counter high-altitude nuclear bomber aircrafts, the main vehicle for delivery of such weapons during the Cold War. A contemporary European counterpart, the SAMP/T (55 TIV) is capable of intercepting ballistic missiles from mobile platforms and has been deployed since 2001.
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_change.png" class="center" height="500">
+</div>
+
+
+## How have different categories ranked in each decade?
 
 <details>
 <summary><b>[CODE] Categories Ranked</b></summary>
@@ -621,11 +652,21 @@ total_tiv_decades_arm_cat <- trade_decades_category |>
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png)
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png)
+The dynamics of conflict evolved over time, and so did the demand for military assets. Missiles have steadily climbed from the 7th (3,764 TIV) to the 2nd (35,494 TIV) position in total TIV transferred since 1950, reflecting their growing role in modern warfare. Their adaptability for both offensive and defensive purposes, as well as their ability to deliver precision strikes over long distances, has driven a nearly ten-fold rise by 2010’s.
 
+In contrast, categories like Air Defence Systems and Artillery reveal different trends. Air Defence Systems rank peaked between 1960 and 1970 (41,974 TIV), ranking 4th during an era when threats from bomber aircrafts required extensive countermeasures. However, following advancements in stealth technology, modern fighter jets tend to be deployed in smaller numbers than the large aircraft formations of the past world wars. The second highest total TIV in this category was in 1980 (27,752 TIV) despite it dropping to the 5th position.
 
-## Have Suppliers Expanded Their Sphere of Influence? 
+Artillery experienced a significant decline, falling from the 4th position (8,870 TIV) to the 8th (4,030 TIV) between 1950 and 2010, as traditional large-scale firepower gave way to more mobile and precise military solutions. The category, however, is expected to regain share following its decisive role in the Russia-Ukraine war. The attrition in Eastern Ukraine has caused a remarkable loss of armoured vehicles and artillery equipment, followed by the depletion of global stockpiles of 165mm artillery shells.
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png" class="center" height="500">
+</div>
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png" class="center" height="350">
+</div>
+
+## Have Suppliers expanded their sphere of influence? 
 
 <details>
 <summary><b>[CODE] Sphere of Influence</b></summary>
@@ -757,7 +798,21 @@ countries_suplied_focused_plot + countries_suplied_alltime_plot
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/sphere.png)
+The sphere of influence of a nation refers to the set of countries with which it possess privileged relations, potentially influencing its culture, economy and external policy. In this context of the global arms trade, the sphere of influence includes those receiving military supplies from it. Given that the transfer of such items is conditioned to State licensing, the market for one’s arms producing companies is largely limited to its allies or where geopolitical interests can be facilitated through the trade of weapons.  
+
+The data in this analysis is based on the ordering date, but delivery is frequently spread over years or decades, ensuring continued diplomatic relations. 
+The number of countries supplied by the United States, European Union and Russia (aggregated to the Soviet Union) has declined in line with the overall trend in arms transfers from 1980.  From 1994, the decline of the three major arms exporters stalled. 
+
+The United States and European Union returned to a growing trend by the early 2000’s. Among the new buyers are countries in Eastern Europe and Western Asia, accounting for 6,371 TIV.
+
+China’s modest expansion is still the most notable among the great powers. Despite it still supplying only a fraction of the American and European figures, China has closed the sphere of influence gap with Russia in a time it primarily focuses on its own reorganization and technological advancement. Its buyers benefit from lower production costs and more flexible standards for licensing, making it a viable option for developing economies or countries isolated by Western allies. In Africa, it received procurements from 37 out of 56 countries between 1995 and 2020 (4,986 TIV). Its trade is frequently associated with energy and infrastructure investments and natural resources exploration agreements. 
+
+On the other hand, Russia supplied a relatively stable number of countries year-over-year. The bulk of its sales target Asia, including China and India, and  Northern Africa. Nevertheless, the distribution of its trade shifted significantly along the period. From 1995 to 2020, Russia transferred 139,990 TIV, with its top ten buyers representing 80% of the trade. Comparing the yearly average TIV in the period post Crimea invasion (2014-2019) to the ten previous 10 years (2004-2013), India reduced its yearly average TIV ordered by 90%, followed by Algeria (24%) Vietnam (89%), Venezuela (100%), Syria (74%), Iraq (58%) and Azerbaijan (93%). China's orders to Russia remained stable due to a single major order worth 4,342 TIV in 2015.
+
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/sphere.png" class="center" height="500">
+</div>
 
 ### Linear Regression
 
@@ -869,9 +924,16 @@ lm_results_table
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/reg_stats.png)
+With the purpose of measuring the rate of change in the number of countries supplied year-over-year and test the hypothesis that there was a significant increase in the sphere of influence of the major arms suppliers along the period of 1995 to 2020, a simple linear model was fit to each supplier’s series. 
+Results suggest that the United States (p<0.0001) and China (p<<0.0001) had a statistically significant increase, at 95% confidence level. Russia (p=0.1892) had a marginally negative slope, but the test indicates the result is not significant. The EU had no significant increase (p=0.1089), although its series have far greater variance and a strong localized peak between 2014 and 2015.
 
-## Who Are the Most Frequent Buyers?
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/reg_stats.png" class="center" height="150">
+</div>
+
+
+## Who are the most frequent buyers for each supplier?
 
 <details>
 <summary><b>[CODE] Distribution of Transactions</b></summary>
@@ -977,9 +1039,24 @@ sup_trans_plot
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/transactions.png)
+Long-term partnerships tend to enjoy privileged access to production capacity and new technologies. The number of transactions recorded in the SIPRI’s database is a strong indicator of the strategic priorities of major arms suppliers, but also of the interests of buyers. 
 
-## Supplier’s Share of Arms Category
+While countries may be equipped by competing suppliers as a means to remain independent of political interference, it is unusual that major alliances overlap between Russia or China and the United States or European Union. This clear delineation underscores the role of arms trade in maintaining and reinforcing geopolitical spheres of influence.
+
+The boxplot below displays the distribution of countries by transaction count, with extreme values highlighted in red. Orders of the same item at a given year may be delivered along multiple dates, thus shown as individual transactions.
+
+Despite the median value across suppliers being relatively similar, Russia displays a remarkable number of transfers to India, the highest in the series. Its trade is mainly composed of fighter aircrafts, tanks and naval systems. 
+
+China’s trade with Pakistan happens far more frequently than with any other close allies, such as Iran and Myanmar. It falls just short of its own orders to Russia.
+The European Union's most frequent buyer, Indonesia, has the largest military budget in South Eastern Asia. Its trade with Western allies was threatened when Indonesia was briefly sanctioned in 1999 after the East Timor conflict. The embargo was reversed in 2000, but the nation diversified its trade with the inclusion of Russia, South Korea and China as suppliers. The EU and US only recovered share after 2010.
+Australia is the United State’s fourth most frequent buyer, which accounts for 68% of its total TIV procured. In the case of Japan and South Korea, it accounts for 96% and 71%, respectively. 
+
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/transactions.png" class="center" height="600">
+</div>
+
+## How have market shares shifted?
 
 <details>
 <summary><b>[CODE] Supplier’s Share of Arms Category</b></summary>
@@ -1045,14 +1122,25 @@ cat_share_plot <- trade |>
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png)
+The US, EU and Russia dominate most of the categories. Where shares are more evenly distributed, the Other suppliers are generally aligned to Western countries. South Korea and Ukraine are hold important shares of the Armoured Vehicle 
+
+Russia has seen dwindling shares along the period, particularly in Aircraft, Artillery, Missiles, Naval Weapons, Sensors and Ships. Despite China having a small fraction of the global supply,  its exports of Air Defence Systems and Ships have grown considerably. 
+
+The United States has the most capable navy, but this does not reflect in American Ships exports. Its share is a fraction of small European nations. This is mainly a result of two factors: the scale and sophistication of US vessels is beyond what any other buying nation requires or is capable of maintaining; and the US has faced challenges to produce for its internal market since its vessel requirements have grown beyond the existing shipbuilding yards’ capacity. On the other hand, it controls  most of the Armoured Vehicles, Missiles, Naval Weapons, Aircraft and Air defence systems supply.
+
+Russia’s share of Air Defence Systems is driven by the successful Tunguska and Pantsyr self-propelled models, which represent 28% of its exports and place it ahead of the US despite having a lower share of surface-air missiles. The export of  Engines is entirely reliant on India and China’s acquisition of 1970’s turbofans for Sukhoi fighter jets.
+
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png" class="center" height="600">
+</div>
 
 
-## Afinity to Supplier
+
+## How dependent is each country on Western or Eastern suppliers?
 
 The following plot maps the receiver countries by the share of TIV acquired from suppliers in the West (US, EU), East (RU, CN) and Others. The bubble size indicates the country’s total TIV between 1995 and 2020. 
 
-To split the plot by market concentration, I mapped the Herfindahl–Hirschman index (HHI) to the bubble colours, where darker indicates higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
+To split the plot by market concentration, the Herfindahl–Hirschman index (HHI) is mapped to the bubble colours, indicating higher concentration by one supplier axis. The HHI is the sum of the supplier’s squared market shares, input as a whole number. $\sum(s^2_1 + s^2_2 + ...s^2_n + )$
 
 Three key insights are observed:
 
@@ -1169,5 +1257,8 @@ affinity_plot_faceted
 ```
 </details>
 
-![image](https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png)
+<div align="center">
+  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png" class="center" height="600">
+</div>
+
 
