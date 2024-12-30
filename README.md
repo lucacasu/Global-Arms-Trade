@@ -5,7 +5,7 @@ The arms production industry has long been dominated by the United States, Europ
 This project utilizes the Stockholm International Peace Research Institute (SIPRI) database to analyze key metrics of the global arms trade. It compares the performance of the US, EU, Russia, and China from 1995 to 2020, providing historical data for context.
 
 <b>About the Arms Trade Data:</b>
-1. [How has the trade volume evolved over time?](https://github.com/lucacasu/Global-Arms-Trade-EDA/edit/main/README.md#how-has-trade-volume-changed)
+1. [How has the trade volume evolved over time?](https://github.com/lucacasu/Global-Arms-Trade-EDA/main/README.md#how-has-trade-volume-changed)
 2. What is the value of the assets being traded?
 3. How has the value of these items changed?
 4. How have different categories ranked in each decade?
