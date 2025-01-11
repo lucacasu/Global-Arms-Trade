@@ -1,0 +1,1260 @@
+---
+title: "R Notebook"
+output:
+  html_document: 
+    toc: true
+    toc_depth: 4
+---
+
+# to do
+
+move this file to the GIT folder.\
+Republish the plots
+
+Fix code commenting, etc.
+
+Add to the markdown file
+
+on git, move the md and the sub-folders to a folder with the same name as the md file
+
+## Import packages
+
+```{r}
+#| label: "packages"
+
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(gt)
+library(gtExtras)
+library(plotly)
+library(RColorBrewer)
+library(scales)
+```
+
+## Import data & Clean
+
+```{r}
+#| label: "import data"
+
+trade <- read_csv("trade_2023.csv", skip = 11)
+```
+
+```{r}
+#| label: "clean_cols"
+
+trade <- janitor::clean_names(trade)
+
+trade <- select(trade, order_date, supplier, recipient, numbers_delivered,
+                armament_category, description, designation, status, sipri_estimate,
+                tiv_deal_unit, tiv_delivery_values)
+
+# Shorten column names
+trade <- trade |>
+  rename(
+    order_year = order_date,
+    arm_cat = armament_category,
+    tiv_unit = tiv_deal_unit,
+    tiv_delivery = tiv_delivery_values,
+    items = numbers_delivered
+  )
+
+# Factors
+trade$supplier <- factor(trade$supplier, ordered = FALSE)
+trade$recipient <- factor(trade$recipient, ordered = FALSE)
+trade$arm_cat <- factor(trade$arm_cat, ordered = FALSE)
+
+trade <- trade |>
+  filter(
+    !(arm_cat %in% c("Engines", "Other", "Satellites"))
+  ) |>
+  mutate(
+    period = case_when(
+      order_year %in% c(2006:2013) ~ "P1",
+      order_year %in% c(2014:2021) ~ "P2",
+      order_year >= 2022 ~ "P3",
+      TRUE ~ "P0"
+    )
+  )
+
+```
+
+## Russia sales - Time Series
+
+```{r}
+#| label: "sales_timeseries"
+
+russia_trade_trend <- trade |>
+  filter(
+    supplier == "Russia",
+    order_year > 1991
+  ) |>
+  group_by(order_year) |>
+  summarise(
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  ) |>
+  ggplot(
+    aes(order_year, TIV)
+  ) +
+ geom_line(
+     aes(alpha = .5),
+     show.legend = FALSE,
+     linewidth = 1
+     ) +
+  
+  geom_point(size = 1.5,
+             show.legend = FALSE) + 
+  
+  geom_vline(xintercept = c(2014, 2022), linetype = 2) +
+  
+  annotate("text", label = "Crimea",
+           angle = 90, hjust = 1, x = 2014.5, y = Inf) +
+  
+  annotate("text", label = "War",
+           angle = 90, hjust = 1, x = 2022.5, y = Inf) +
+
+  theme(axis.text.x = element_text(angle = 0, vjust = 0.5)) +
+  
+  labs(
+    title = "Russiam Arms Exports",
+    subtitle = "From 1991 to 2023.",
+    y = "TIV",
+    x = element_blank(),
+    alpha = element_blank(),
+    caption = "Stockholm International Peace Research Institute (SIPRI),
+    SIPRI Arms Transfers Database, accessed [November, 2023],
+    https://www.sipri.org/databases/armstransfers."
+    ) +
+  theme(plot.title = element_text(face = "bold")) +
+  theme_minimal()
+
+russia_trade_trend
+
+
+russia_trade_trend |> ggsave(filename = "plot_russia_exports_trend.jpg", width = 8, height = 6, dpi = 300)
+
+
+
+```
+
+```{r}
+#| label: "export_time_series"
+#| fig-height: 6
+#| fig-width: 8
+
+# total exports
+trade |>
+  filter(
+    supplier == "Russia",
+    order_year > 2000
+  ) |>
+  group_by(order_year) |>
+  summarise(
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  ) |>
+  ggplot(
+    aes(order_year,TIV, label = TIV)
+  ) +
+  geom_col()
+ 
+
+# total sales, with milestones
+russia_trade_cat_trend <- trade |>
+  filter(
+    supplier == "Russia",
+    order_year > 2005
+  ) |>
+  
+  group_by(order_year, arm_cat) |>
+  summarise(
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  ) |>
+  
+  group_by(arm_cat) |>
+  ggplot(
+    aes(order_year,TIV, label = TIV, fill = arm_cat)
+  ) +
+  
+  geom_col(
+    show.legend = FALSE
+  ) +
+  
+  geom_vline(xintercept = c(2014, 2022), linetype = 2) +
+  annotate("text", label = "Crimea", size = 3,
+           angle = 90, hjust = 1, x = 2014.5, y = Inf) +
+  annotate("text", label = "War", size = 3,
+           angle = 90, hjust = 1, x = 2022.5, y = Inf) +
+  
+  facet_wrap(~arm_cat, scales = "free_y", ncol = 2) +
+  
+    labs(
+    title = "Russian Arms Exports",
+    subtitle = "From 2006 to 2023 by Arms Category.",
+    y = "TIV",
+    x = element_blank(),
+    alpha = element_blank(),
+    caption = "Stockholm International Peace Research Institute (SIPRI),
+    SIPRI Arms Transfers Database, accessed [November, 2023],
+    https://www.sipri.org/databases/armstransfers."
+    ) +
+  theme_minimal()
+
+russia_trade_cat_trend
+
+russia_trade_cat_trend |>
+  ggsave(filename = "plot_russia_exports_category_trend.jpg", width = 8, height = 6, dpi = 300)
+```
+
+```{R}
+#| label: "compare_cat"
+
+# COMPARE CATEGORIES TIV BEFORE CRIMEA, AFTER CRIMEA
+
+# Create dataset with mean TIV for the periods + change pct
+
+trade_diff <- trade |>
+  filter(
+    supplier == "Russia",
+    order_year >= 2006
+  ) |>
+  # Total TIV per year
+  group_by(period, arm_cat) |>
+  mutate(
+    TIV = sum(tiv_delivery),
+    TIV = case_when(
+      period == "P1" ~ round(TIV/8,2),
+      period == "P2" ~ round(TIV/8,2),
+      period == "P3" ~ round(TIV/2,2),
+    )) |>
+  summarise(
+    TIV = mean(TIV),
+    .groups = "drop"
+  )
+
+trade_diff_pct <- trade_diff |>
+  pivot_wider(names_from = period, values_from = TIV) |>
+  mutate(
+    dP2_1 = if_else(is.na(P2/P1-1),-1,P2/P1-1),
+    dP3_2 = if_else(is.na(P3/P2-1),-1,P3/P2-1),
+    dP3_1 = if_else(is.na(P3/P1-1),-1,P3/P1-1)
+  ) |>
+  mutate(across(P1:dP3_1, ~round(.,2))) |>
+  arrange(dP3_1) |>
+  # Replace NAs
+  mutate(
+    across(P1:dP3_1, ~if_else(is.na(.),true = 0,.)
+  ))
+
+
+trade_diff
+trade_diff_pct 
+
+
+
+# Visualize the totals per period, category
+
+trade_diff_pct |>
+  pivot_longer(
+    cols = c(P1:dP3_1),
+               names_to = "series", values_to = "value"
+  ) |>
+  filter(
+    series %in% c("P1","P2","P3")
+  ) |>
+  group_by(arm_cat) |>
+  ggplot(
+    aes(series, value, fill = arm_cat)
+  ) +
+  geom_col(
+    show.legend = FALSE
+  ) +
+  facet_wrap(~arm_cat, scales = "free_y")
+
+
+# What categories continued selling?
+trade_diff_pct |>
+  #select(arm_cat,dP2_1,dP3_2,dP3_1) |>
+  arrange(dP2_1)
+
+    trade_diff_pct |>
+      select(arm_cat,P1,P2,P3) |>
+      arrange(desc(P2))
+    
+    trade_diff_pct |>
+      filter(arm_cat %in% c("Aircraft",
+                            "Missiles",
+                            "Air defence systems",
+                            "Armoured vehicles")) |>
+      #select(arm_cat,dP2_1,dP3_2,dP3_1) |>
+      arrange(dP2_1)
+```
+
+Aircraft, missiles armoured vehicles and ADS were the lifeline after 2014.\
+Aircraft actually had a single large order, but remained minuscule after. Armoured vehicles just declined slower but ceased by 2020. Missiles persisted up to 2022 as it declined slowly. Artillery even had some sales up to 2017 but with very low volume.
+
+## What items continued to sell? (categories)
+
+```{r}
+
+# Based on P1 for consistency
+
+cat_list = c("Aircraft",
+             "Air defence systems",
+             "Armoured vehicles",
+             "Missiles",
+             "Ships")
+
+```
+
+### PERIOD P1
+
+```{r}
+#| label: "sales_P1_items"
+
+exp_P1_cat <- trade |>
+  filter(
+    period == "P1",
+    arm_cat %in% cat_list,
+    supplier == "Russia"
+  ) |>
+  
+  group_by(arm_cat, description) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P1"
+  )
+
+# items worth >5% of total TIV per category
+
+exp_P1_cat_5pct <- exp_P1_cat |>
+  filter(pct > 0.05)
+
+
+exp_P1_cat_5pct
+
+
+# Filter designations
+exp_P1_desig <- trade |>
+  filter(
+    period == "P1",
+    arm_cat %in% cat_list,
+    supplier == "Russia",
+    description %in% exp_P1_cat_5pct$description
+  ) |>
+  
+  group_by(arm_cat, description, designation) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P1"
+  ) |>
+  ungroup()
+
+
+exp_P1_desig
+```
+
+### PERIOD P2
+
+```{r}
+#| label: "sales_P2_items"
+
+exp_P2_cat <- trade |>
+  filter(
+    period == "P2",
+    arm_cat %in% cat_list,
+    supplier == "Russia"
+  ) |>
+  
+  group_by(arm_cat, description) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P2"
+  )
+
+# items worth >5% of total TIV per category
+
+exp_P2_cat_5pct <- exp_P2_cat |>
+  filter(pct > 0.05)
+
+
+exp_P2_cat_5pct
+
+
+
+# Filter designations
+exp_P2_desig <- trade |>
+  filter(
+    period == "P2",
+    arm_cat %in% cat_list,
+    supplier == "Russia",
+    description %in% exp_P2_cat_5pct$description
+  ) |>
+  
+  group_by(arm_cat, description, designation) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P2"
+  ) |>
+  ungroup()
+
+
+exp_P2_desig
+
+```
+
+### PERIOD P3
+
+```{r}
+#| label: "sales_P3_items"
+
+exp_P3_cat <- trade |>
+  filter(
+    period == "P3",
+    arm_cat %in% cat_list,
+    supplier == "Russia"
+  ) |>
+  
+  group_by(arm_cat, description) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P3"
+  )
+
+# items worth >5% of total TIV per category
+
+exp_P3_cat_5pct <- exp_P3_cat |>
+  filter(pct > 0.05)
+
+
+exp_P3_cat_5pct
+
+
+
+# Filter designations
+exp_P3_desig <- trade |>
+  filter(
+    period == "P3",
+    arm_cat %in% cat_list,
+    supplier == "Russia",
+    description %in% exp_P3_cat_5pct$description
+  ) |>
+  
+  group_by(arm_cat, description, designation) |>
+  summarise(
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+  ) |>
+  arrange(arm_cat, desc(TIV)) |>
+  
+  group_by(arm_cat) |>
+  mutate(
+    pct = round(TIV / sum(TIV),2),
+    cumsum = cumsum(pct),
+    period = "P3"
+  ) |>
+  ungroup()
+
+
+exp_P3_desig
+```
+
+```{r}
+
+# Bind tables from PERIOD P1, P2, P3 above
+exp_table <- rbind(exp_P1_cat_5pct,
+                   exp_P2_cat_5pct,
+                   exp_P3_cat_5pct)
+
+exp_table2 <- exp_table |>
+  relocate(period) |>
+  select(-pct, -cumsum) |>
+  pivot_wider(names_from = period, values_from = c(units, TIV)) |>
+  arrange(arm_cat,desc(TIV_P1)) |>
+  mutate(
+    across(units_P1:TIV_P3, ~if_else(is.na(.), 0,round(.)))
+  )
+
+cols_labels <- unlist(lapply(c("Units", "Mean Yearly TIV"), function(x) paste(x, c("P1", "P2", "P3*"), sep = "_"))) 
+
+cols_names <- c("arm_cat", "description") |> append(cols_labels)
+names(exp_table2) <- cols_names
+  
+
+exp_table2
+
+
+# Russian exports per category in P1, P2 ,P3
+
+table_russia_exports <- exp_table2 |>
+  gt(row_group_as_column = TRUE ) |>
+  opt_row_striping() |>
+  tab_spanner_delim(delim = "_") |>
+  cols_width(
+    starts_with("Units") ~ px(50),
+    starts_with("Mean") ~ px(100)
+    ) |>
+  
+  tab_header(
+    title = "Russian Arms Exports",
+    subtitle = "Analysis of Pre-Crimea, Post-Crimea, and Post-Full Scale War Periods"
+    ) |>
+  
+  tab_footnote(
+    footnote = md("(*) P3 averages two years (2022-23),
+                  compared to eight years in P1 (2006-13) and P2 (2014-21).")
+    ) |>
+  tab_footnote(
+    footnote = md("Source: Stockholm International Peace
+    Research Institute (SIPRI),
+    SIPRI Arms Transfers Database.")
+    ) |>
+  
+  tab_style(
+      style = list(cell_text(weight = "bold")),
+      locations = list(cells_row_groups(), cells_column_labels(), cells_title()))
+
+
+table_russia_exports
+
+
+gtsave(table_russia_exports, "table_russia_exports_P1_P2_P3.png")
+
+```
+
+## What items continued to sell? (items)
+
+```{r}
+
+# Table with designation breakdown
+
+exp_table_desig <- rbind(exp_P1_desig, exp_P2_desig, exp_P3_desig)
+
+exp_table_desig2 <- exp_table_desig |>
+  relocate(period) |>
+  select(-pct, -cumsum) |>
+  pivot_wider(names_from = period, values_from = c(units, TIV)) |>
+  arrange(arm_cat,desc(TIV_P1)) |>
+  mutate(
+    across(units_P1:TIV_P3, ~if_else(is.na(.), 0,round(.)))
+  )
+
+cols_names2 <- c("arm_cat", "description", "Designation") |>
+  append(cols_labels)
+
+names(exp_table_desig2) <- cols_names2
+  
+
+exp_table_desig2
+
+  
+```
+
+```{r}
+# Split the data by category
+split_data <- exp_table_desig2 |>
+  arrange(arm_cat, description, desc(`Mean Yearly TIV_P1`)) |>
+  group_split(arm_cat)
+
+
+# GT table for each category
+exp_tables_desig <- lapply(split_data, function(group) {
+  
+  # Category labels
+  arm_cat_label <- unique(group$arm_cat)
+
+  group |>
+    select(-arm_cat) |>
+    group_by(description) |>
+    gt(row_group_as_column = TRUE) |>
+    opt_row_striping() |>
+    tab_spanner_delim(delim = "_") |>
+    cols_width(
+      starts_with("Units") ~ px(50),
+      starts_with("Mean") ~ px(100)
+      ) |>
+    
+  # Custom title for each table
+  tab_header(
+    title = paste0(arm_cat_label, " - Russian Arms Exports"),
+    subtitle = "Analysis of Pre-Crimea, Post-Crimea, and Post-Full Scale War Periods"
+    ) |>
+  
+  tab_footnote(
+    footnote = md("(*) P3 averages two years (2022-23),
+                  compared to eight years in P1 (2006-13) and P2 (2014-21).")
+    ) |>
+  tab_footnote(
+    footnote = md("Source: Stockholm International Peace
+    Research Institute (SIPRI),
+    SIPRI Arms Transfers Database.")
+    ) |>
+  
+  tab_style(
+      style = list(cell_text(weight = "bold")),
+      locations = list(cells_row_groups(), cells_column_labels(), cells_title())
+      )
+})
+
+
+exp_tables_desig
+
+
+for (i in seq_along(exp_tables_desig)) {
+  gtsave(exp_tables_desig[[i]],
+         filename = paste0("table_exports_russia_",
+                          snakecase::to_snake_case(sub("\\ -.*", "", tolower(unclass(exp_tables_desig[[i]])$`_heading`$title))),
+                           ".png"))
+}
+
+
+```
+
+## Buyer Countries and their trade in P1, P2
+
+```{r}
+#| label: "countries_pareto"
+
+# List of countries supplied
+ctr_ru_cat <- trade |>
+  filter(
+    #arm_cat %in% cat_list,
+    supplier == "Russia",
+    period %in% c("P1","P2","P3")
+  ) |>
+  group_by(period, recipient, arm_cat) |>
+  summarise(
+    orders = n(),
+    units = sum(items),
+    TIV = sum(tiv_delivery)
+    ) |>
+  # arrange(period, desc(TIV)) |>
+  # group_by(period) |>
+  # mutate(
+  #   pct = TIV / sum(TIV),
+  #   cumsum = cumsum(pct)
+  # ) |> 
+  ungroup()
+
+
+# Count of countries supplied per period
+ctr_ru_cat |>
+  group_by(period, recipient) |>
+  summarise(
+    TIV = sum(TIV)
+  ) |>
+  arrange(desc(TIV)) |>
+  summarise(
+    n = n()
+  )
+
+
+# Pareto - cumsum of pct
+ctr_ru_cat |>
+  group_by(period, recipient) |>
+  summarise(
+    TIV = sum(TIV)
+  ) |>
+  arrange(desc(TIV)) |>
+
+  group_by(period) |>
+  mutate(
+    pct = TIV / sum(TIV),
+    cumsum = cumsum(pct),
+    rank = 1:n()
+  ) |>
+  relocate(rank) |>
+  
+  ggplot(
+    aes(rank, cumsum, color = period)
+  ) +
+  geom_line(
+    linewidth = 1
+  )
+
+
+
+  
+
+
+```
+
+```{r}
+#| label: "countries_list"
+
+# Indicator columns for presence of sales
+ctr_ru_mean <- ctr_ru_cat |>
+  group_by(period, recipient) |>
+  summarise(
+    TIV = sum(TIV),
+    .groups = "drop"
+  ) |>
+  select(period, recipient, TIV) |>
+  pivot_wider(names_from = period, values_from = TIV) |>
+  mutate(
+    ID_P1 = if_else(is.na(P1), 0, 1),
+    ID_P2 = if_else(is.na(P2), 0, 1), # 0 if Px has zero sales
+    ID_P3 = if_else(is.na(P3), 0, 1),
+    P1 = P1/8,
+    P2 = P2/8,
+    P3 = P3/2
+  )
+
+
+ctr_ru_mean_group <- ctr_ru_mean |>
+  mutate(
+    group = case_when(
+      (ID_P1 == 1 & ID_P2 == 0 & ID_P3 == 0) ~ "A", # no sales after P1
+      (ID_P1 == 1 & ID_P2 == 1 & ID_P3 == 0) ~ "B", # no sales after P2
+      (ID_P1 == 0 & (ID_P2 == 1 | ID_P3 == 1)) ~ "C", # no sales BEFORE p1
+      (ID_P1 == 1 & ID_P2 == 1 & ID_P3 == 1) ~ "D", # persistent buyers
+      TRUE ~ "-"
+    ),
+    dP2_1 = case_when(
+      (is.na(P1) & is.na(P2)) ~ 0,
+      (is.na(P1) & !is.na(P2)) ~ P2,
+      (!is.na(P1) & is.na(P2)) ~ -P1,
+      (!is.na(P1) & !is.na(P2)) ~ P2-P1
+    ),
+    dP3_2 = case_when(
+      (is.na(P2) & is.na(P3)) ~ 0,
+      (is.na(P2) & !is.na(P3)) ~ P3,
+      (!is.na(P2) & is.na(P3)) ~ -P2,
+      (!is.na(P2) & !is.na(P3)) ~ P3-P2
+    )
+  )
+  
+ctr_ru_mean_group
+
+
+ctr_ru # TOTAL TIV per country/category
+ctr_ru_total # YEARLY TIV AVERAGE of Px per country
+ctr_ru_total_group # grouped by indicators + absolute differences
+
+```
+
+We know which countries stopped buying. Now we need to find out how their volume of sales changed in the same period.
+
+```{r}
+
+# Join data from overall orders to orders to Russia
+ctr_exp_compare_all_ru <- left_join(
+  ctr_all_mean, 
+  ctr_ru_mean_group |>
+    select(recipient, group, P1, P2, P3, dP2_1, dP3_2),
+  by = join_by(recipient),
+  suffix = c("_ALL", "_RU")
+  ) |>
+  mutate(across(c(P1_ALL: dP3_2_ALL, P1_RU:dP3_2_RU), ~round(.,2)))
+
+
+# Calculate percentual changes between periods, add indicators,
+ctr_exp_compare_all_ru <- ctr_exp_compare_all_ru |>
+  mutate(
+    across(c(P1_ALL: dP3_2_ALL, P1_RU:dP3_2_RU), ~if_else(is.na(.),0,.))) |>
+  mutate(
+    P2_1_change_total = round(P2_ALL / P1_ALL -1, 2),
+    P2_1_change_ru = round(P2_RU / P1_RU -1, 2),
+    P3_2_change_total = round(P3_ALL / P2_ALL -1, 2),
+    P3_2_change_ru = round(P3_RU / P2_RU -1, 2),
+    russia_lost = as_factor(if_else(P2_1_change_ru < 0, 1, 0))
+  )
+
+```
+
+```{r}
+#| fig-height: 11
+#| fig-width: 8
+
+
+# Transformation to display outliers (cubic root)
+signed_sqrt_trans <- trans_new(
+  "signed_sqrt",
+  transform = function(x) if_else(x > 1, x^(1/3), x), 
+  inverse = function(x) if_else(x > 1, x^3, x)
+)
+
+# Labels
+group_name <- c(
+  "1" = "Q1",
+  "2" = "Q2",
+  "3" = "Q3",
+  "4" = "TIV from Russia - 4th Quartile"
+)
+
+
+# Get quartile ranges
+quartile_range_table <- ctr_exp_compare_all_ru |>
+  select(
+    recipient, group, P1_RU, russia_lost,
+         P2_1_change_total, P3_2_change_total,
+         P2_1_change_ru, P3_2_change_ru
+  ) |>
+  filter(
+    group %in% c("A", "B", "D"), # Excludes new clients
+  ) |>
+  mutate(quartile = factor(ntile(P1_RU, 4),
+                           levels = c("4", "3", "2", "1"),
+                           ordered = TRUE)) |>
+  arrange(desc(P1_RU)) |>
+  group_by(quartile) |>
+  summarise(
+    range = round(range(P1_RU), 1)
+  )
+
+quartile_range <- ""
+for (i in 1:4){
+  quartile_range <- paste0(quartile_range,
+      "Q",
+      i,
+      ": From ",
+        filter(slice(quartile_range_table,1), quartile == i) |> pull(range),
+      " to ",
+        filter(slice(quartile_range_table,2), quartile == i) |> pull(range),
+      " TIV",
+      "\n")
+}
+
+
+# percentual reduction in mean TIV for each period, for all purchases and for Russia
+
+plot_country_trade_russia <- ctr_exp_compare_all_ru |>
+  select(
+    recipient, group, P1_RU, russia_lost,
+    P2_1_change_total, P3_2_change_total,
+    P2_1_change_ru, P3_2_change_ru
+  ) |>
+  filter(
+    group %in% c("A", "B", "D"), # Excludes new clients
+  ) |>
+  mutate(quartile = factor(ntile(P1_RU, 4),
+                           levels = c("4", "3", "2", "1"),
+                           ordered = TRUE)) |>
+  ggplot() +
+  
+  geom_segment(
+    aes(x = 0, xend = P2_1_change_ru, y = reorder(recipient, P2_1_change_total)),
+    color="black",
+    linewidth = 1
+    ) +
+  
+  geom_col(
+    aes(P2_1_change_total, recipient),
+    fill = "grey"
+  ) +
+  
+  geom_point(
+    aes(P2_1_change_ru, recipient, color = russia_lost),
+    size = 2.5,
+    show.legend = FALSE
+  ) +
+  
+  facet_grid(
+    quartile~., scales = "free_y", space = "free",
+    labeller = labeller(quartile = group_name), switch = "y" 
+    ) +
+  
+  labs(
+    title = "Recipient's change in overall orders (bar) vs. orders to Russia (dot)",
+    subtitle = "Percentual change in mean yearly TIV between 2014-2021 and 2006-2013.",
+    y = element_blank(),
+    x = "Percentual Change",
+    color = element_blank(),
+    caption = "Stockholm International Peace Research Institute (SIPRI),
+    SIPRI Arms Transfers Database, accessed [November, 2023],
+    https://www.sipri.org/databases/armstransfers."
+    ) +
+  
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold"),
+    panel.grid.minor.x = element_blank(),
+    strip.text.y = element_text(face = "bold"),
+    strip.placement = "outside",
+    strip.background = element_rect(fill = "grey90", color = NA)
+    ) +
+  
+  scale_x_continuous(
+    trans = signed_sqrt_trans,
+    breaks = as.integer(c(-1, -0.5, 0, 0.5, 1:5, 10, 100 ))
+  ) +
+  scale_color_brewer(palette = "Set1", direction = -1)
+
+
+plot_country_trade_russia
+
+
+plot_country_trade_russia |>
+  ggsave(filename = "plot_buyers_trade_overall_russia.jpg", width = 8, height = 11, dpi = 300)
+  
+
+# How many countries reduced / not reduced orders to russia?
+
+ctr_exp_compare_all_ru |>
+  select(
+    recipient, group, russia_lost,
+    P2_1_change_total, P3_2_change_total,
+    P2_1_change_ru, P3_2_change_ru
+  ) |>
+  filter(
+    group %in% c("A", "B", "D"), # Excludes new clients
+  ) |>
+  pull(russia_lost) |>
+  table()
+
+ctr_exp_compare_all_ru |>
+  filter(
+    group %in% c("A", "B", "D"), # Excludes new clients
+  ) |>
+  select(recipient, P3_RU) |>
+  filter(P3_RU > 0)
+  
+  
+
+```
+
+```{r}
+
+# percentual change in total TIV
+
+buyers_imports <- ctr_exp_compare_all_ru |>
+  select(
+    group, russia_lost,
+    P1_ALL, P2_ALL, P3_ALL, P1_RU, P2_RU, P3_RU,
+    P2_1_change_total, P2_1_change_ru,
+    P3_2_change_total, P3_2_change_ru
+  ) |>
+  filter(
+    group %in% c("A", "B", "D"), # Excludes new clients
+  ) |>
+  summarise(
+    P2_ALL_CHANGE = sum(P2_ALL)/sum(P1_ALL)-1,
+    P2_RU_CHANGE = sum(P2_RU)/sum(P1_RU)-1,
+    P3_ALL_CHANGE = sum(P3_ALL)/sum(P1_ALL)-1,
+    P3_RU_CHANGE = sum(P3_RU)/sum(P1_RU)-1
+  ) |>
+  mutate(across(c(P2_ALL_CHANGE:P3_RU_CHANGE), ~round(., 3))) |>
+  
+  rename(
+    'Post-Crimea_Overall' = P2_ALL_CHANGE,
+    'Post-Crimea_Russia' = P2_RU_CHANGE,
+    'Post-War*_Overall' = P3_ALL_CHANGE,
+    'Post-War*_Russia' = P3_RU_CHANGE  
+  ) |>
+  gt() |>
+  
+  tab_spanner_delim(delim = "_") |>
+  fmt_percent(
+      decimals = 1
+    ) |>
+  cols_align("center") |>
+  cols_width(
+    everything() ~ px(100)
+    ) |>
+  
+  tab_header(
+    title = "Change in Traded Volume\nby Russian Arms Importer"
+    ) |>
+  
+  tab_footnote(
+    footnote = md("(*) Post-War averages two years (2022-23),
+                  compared to eight years pre (2006-13).")
+    ) |>
+  tab_footnote(
+    footnote = md("Source: Stockholm International Peace
+    Research Institute (SIPRI),
+    SIPRI Arms Transfers Database.")
+    ) |>
+  
+  tab_style(
+      style = list(cell_text(weight = "bold", size = 15)),
+      locations = list(cells_title())
+      )
+
+
+buyers_imports |> gtsave("table_buyers_imports_change.png")
+```
+
+```{r}
+
+russia_lost_list <- ctr_exp_compare_all_ru |>
+  filter(russia_lost == 1) |>
+  pull(recipient)
+
+
+# Sum of TIV in P1 and P2 for countries where Russia lost market share
+ctr_ru_loss_tiv <- trade |>
+  filter(
+    recipient %in% russia_lost_list,
+    period %in% c("P1","P2")
+  ) |>
+  group_by(period, recipient, supplier) |>
+  summarise(
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  ) |>
+  pivot_wider(names_from = period, values_from = TIV) |>
+  mutate(
+    across(c("P1","P2"), ~if_else(is.na(.),0,.)),
+    diff = P2-P1
+    )
+
+# Top 5 countries represent ~78% of
+# the Russian total TIV loss between P1 and P2 
+ctr_ru_loss_tiv_top5_list <- ctr_ru_loss_tiv |>
+  arrange(diff) |>
+  filter(
+    supplier == "Russia"
+  ) |>
+  top_n(-5) |>
+  pull(recipient)
+  
+
+
+# suppliers who gained share in coutries which russia lost share
+ctr_ru_loss_tiv_competitors <- ctr_ru_loss_tiv |>
+  filter(
+    recipient %in% ctr_ru_loss_tiv_top5_list
+  ) |>
+  arrange(desc(diff))
+
+# Total TIV increase of suppliers who
+# gained share in coutries which russia lost share
+ctr_ru_loss_tiv_competitors |>
+  group_by(supplier) |>
+  summarise(
+    TIV_increase = sum(diff)
+  ) |>
+  arrange(desc(TIV_increase))
+
+
+```
+
+```{r}
+
+# Sum of TIV PER CATEGORY in P1 and P2 for the
+# top 5 countries where Russia lost market share
+ctr_ru_loss_tiv_cat <- trade |>
+  filter(
+    period %in% c("P1","P2"),
+    recipient %in% ctr_ru_loss_tiv_top5_list
+  ) |>
+  group_by(period, recipient, supplier, arm_cat) |>
+  summarise(
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  ) |>
+  pivot_wider(names_from = period, values_from = TIV) |>
+  mutate(across(c("P1","P2"), ~if_else(is.na(.),0,.))) |>
+  arrange(desc(P1)) |>
+  mutate(
+  diff = P2-P1
+  )
+  
+# This answers where the demand has moved to.
+# The top 5 countries who cut orders from Russia
+# have increased their orders to the following suppliers
+
+ctr_ru_loss_tiv_cat_increase <- ctr_ru_loss_tiv_cat |>
+  filter(
+    supplier != "Russia"
+  ) |>
+  group_by(supplier, arm_cat) |>
+  summarise(
+    TIV_increase = sum(diff)
+  ) |>
+  arrange(desc(TIV_increase))
+
+ctr_ru_loss_tiv_cat_increase
+
+
+ctr_ru_loss_tiv_cat_increase_cat_list <- ctr_ru_loss_tiv_cat_increase |>
+  pull(arm_cat) |>
+  unique()
+
+ctr_ru_loss_tiv_cat_increase_ctr_list <- ctr_ru_loss_tiv_cat_increase |>
+  pull(supplier) |>
+  unique()
+
+
+```
+
+```{r}
+
+# What items have the top 5 sellers to the countries which Russia lost share?
+
+# ctr_ru_loss_tiv_cat_increase_cat_list
+# ctr_ru_loss_tiv_cat_increase_ctr_list 
+# ctr_ru_loss_tiv_top5_list
+
+gainers_cat_items <- trade |>
+  filter(
+    period %in% c("P1","P2"),
+    recipient %in% ctr_ru_loss_tiv_top5_list,
+    supplier %in% ctr_ru_loss_tiv_cat_increase_ctr_list,
+    arm_cat %in% ctr_ru_loss_tiv_cat_increase_cat_list
+  ) |>
+  group_by(period, supplier, recipient, arm_cat, designation) |>
+  summarise(
+    items = sum(items),
+    TIV = sum(tiv_delivery),
+    .groups = "drop"
+  )
+  
+
+gainers_cat_items |> arrange(desc(TIV)) # Top TIV
+gainers_cat_items |> arrange(desc(items)) # Top Items count
+
+
+#### Difference between Pre-Crimea and Post-Crimea in the number of items and TIV for each item in the selected categories
+#### supplied by the countries who gained share where Russia lost share
+
+### Review this to get insights
+### Check the production date as some may not be available before 2014
+
+gainers_cat_items_diff <- gainers_cat_items |>
+  pivot_wider(
+    names_from = period, values_from = c(items, TIV)
+  ) |>
+  mutate(
+    across(c(items_P1:TIV_P2), ~if_else(is.na(.), 0, .)),
+    diff_items = items_P2 - items_P1,
+    diff_TIV = TIV_P2 - TIV_P1,    
+    ) |>
+  filter(
+    diff_TIV > 0,
+    #items_P1 == 0
+    ) |>
+  arrange(desc(diff_TIV))
+
+
+### Grouped tables
+gainers_cat_items_diff_table_group <- gainers_cat_items_diff |>
+  select(supplier, arm_cat, designation, recipient, items_P1, diff_items, diff_TIV) |>
+  arrange(arm_cat, desc(diff_TIV)) |>
+  group_split(recipient)
+  
+
+
+gainers_cat_items_diff_table_group_gt <- lapply(gainers_cat_items_diff_table_group, function(group) {
+  
+  # Category labels
+  recipient_label <- unique(group$recipient)
+
+  group |>
+    select(-recipient) |>
+    rename(
+      `Pre-Crimea_Items` = items_P1,
+      `Post-Crimea_Items` = diff_items,
+      `Post-Crimea_TIV` = diff_TIV,
+      Supplier = supplier,
+      Designation = designation
+    ) |>
+    mutate(`Post-Crimea_TIV` = as.integer(`Post-Crimea_TIV`)) |>
+    group_by(arm_cat) |>
+    gt(row_group_as_column = TRUE) |>
+    opt_row_striping() |>
+    tab_spanner_delim(delim = "_") |>
+    cols_width(
+      cols_names = c(`Post-Crimea_Items`, `Post-Crimea_TIV`) ~ px(75)
+      ) |>
+    cols_width(
+      cols_names = c(`Pre-Crimea_Items`) ~ px(120)
+      ) |>
+    
+  # Custom title for each table
+  tab_header(
+    title = paste0(recipient_label, " -  Shifts in Arms Trade"),
+    subtitle = md("Sales by Countries Filling Russia's Market Gap")
+    ) |>
+  
+  tab_footnote(
+    footnote = md("Source: Stockholm International Peace
+    Research Institute (SIPRI),
+    SIPRI Arms Transfers Database.")
+    ) |>
+  
+  tab_style(
+      style = list(cell_text(weight = "bold")),
+      locations = list(cells_row_groups(), cells_column_labels(), cells_title())
+      ) |> 
+    cols_align("left", columns = c(Supplier, Designation)) |>
+    cols_align("center", columns = c(`Pre-Crimea_Items`, `Post-Crimea_Items`))
+})
+
+
+for (i in seq_along(gainers_cat_items_diff_table_group_gt)) {
+  gtsave(gainers_cat_items_diff_table_group_gt[[i]],
+         filename = paste0("table_exports_winners_",
+           sub("\\ -.*", "",
+           unclass(
+             gainers_cat_items_diff_table_group_gt[[i]]
+             )$`_heading`$title),
+             ".png"))
+}
+
+
+# List of designations to check the there are any sales before 2013
+# looking for items that were not available in P1 at all
+
+design_list <- gainers_cat_items_diff$designation
+
+trade |>
+  filter(
+    designation %in% design_list,
+    period %in% c("P1","P2")
+    ) |>
+  group_by(period, designation) |>
+  summarise(
+    total = sum(items)
+  ) |>
+  pivot_wider(names_from = period, values_from = total) |>
+  filter(
+    P1 == 0
+  )
+
+#### ALL ITEMS HAVE SOME SALE IN P1. 
+
+```
