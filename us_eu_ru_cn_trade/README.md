@@ -357,7 +357,7 @@ The trend was reversed from 1995 as China and India procured Su-27S fighter airc
 The series had a localised peak between 2005 and 2015, averaging 27,605 TIV per year but rapidly decreasing to reach a new all-time low in 2020.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Global-Arms-Trade/tree/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/global_tiv.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/global_tiv.png?raw=true" class="center" height="500">
 </div>
 
 ## What is the value of the assets being traded?
@@ -434,11 +434,11 @@ Satellites have the highest median value of 50 TIV. However, the strategic natur
 Among aircrafts, the most valuable items are not fifth-generation fighter jets, considered to be the state-of-the-art in military technology. Instead, the E-767 Airborne Warning and Control System (AWACS) aircraft, a type of airborne command center, ranks as the highest in the category at 300 TIV. This technology is considered a force multiplier for its potential to enable communication and early warning of stealth and low-flying objects in vast areas.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_value.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/tiv_value.png" class="center" height="500">
 </div>
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_stats.png" class="center" height="350">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/tiv_stats.png" class="center" height="350">
 </div>
 
 
@@ -507,7 +507,7 @@ Sensors have become increasingly valuable, rapidly growing in average TIV from 1
 Among Air Defence Systems, the 1950’s Russian S-75 Dvina and the American Nike missile systems, valued at 17.8 and 35 TIV respectively, were the first surface-to-air missiles developed to counter high-altitude nuclear bomber aircrafts, the main vehicle for delivery of such weapons during the Cold War. A contemporary European counterpart, the SAMP/T (55 TIV) is capable of intercepting ballistic missiles from mobile platforms and has been deployed since 2001.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_change.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/tiv_change.png" class="center" height="500">
 </div>
 
 
@@ -658,11 +658,11 @@ In contrast, categories like Air Defence Systems and Artillery reveal different 
 Artillery experienced a significant decline, falling from the 4th position (8,870 TIV) to the 8th (4,030 TIV) between 1950 and 2010, as traditional large-scale firepower gave way to more mobile and precise military solutions. The category, however, is expected to regain share following its decisive role in the Russia-Ukraine war. The attrition in Eastern Ukraine has caused a remarkable loss of armoured vehicles and artillery equipment, followed by the depletion of global stockpiles of 165mm artillery shells.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/tiv_rank.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/tiv_rank.png" class="center" height="500">
 </div>
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/rank_stats.png" class="center" height="350">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/rank_stats.png" class="center" height="350">
 </div>
 
 ## Have Suppliers expanded their sphere of influence? 
@@ -810,7 +810,7 @@ On the other hand, Russia supplied a relatively stable number of countries year-
 
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/sphere.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/sphere.png" class="center" height="500">
 </div>
 
 ### Linear Regression
@@ -928,7 +928,7 @@ Results suggest that the United States (p<0.0001) and China (p<<0.0001) had a st
 
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/reg_stats.png" class="center" height="150">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/reg_stats.png" class="center" height="150">
 </div>
 
 
@@ -1052,7 +1052,7 @@ Australia is the United State’s fourth most frequent buyer, which accounts for
 
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/transactions.png" class="center" height="600">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/transactions.png" class="center" height="600">
 </div>
 
 ## How have market shares shifted?
@@ -1130,7 +1130,7 @@ The United States has the most capable navy, but this does not reflect in Americ
 Russia’s share of Air Defence Systems is driven by the successful Tunguska and Pantsyr self-propelled models, which represent 28% of its exports and places it ahead of the US, despite having a lower share of surface-air missiles. The export of  Engines is entirely reliant on India and China’s acquisition of 1970’s turbofans for Sukhoi fighter jets.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/cat_share.png" class="center" height="600">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/cat_share.png" class="center" height="600">
 </div>
 
 
@@ -1257,7 +1257,7 @@ affinity_plot_faceted
 </details>
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/affinity_split.png" class="center" height="600">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/blob/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/affinity_split.png" class="center" height="600">
 </div>
 
 
