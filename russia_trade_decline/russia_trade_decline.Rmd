@@ -743,6 +743,8 @@ ctr_ru_mean <- ctr_ru_cat |>
   )
 
 
+
+
 ctr_ru_mean_group <- ctr_ru_mean |>
   mutate(
     group = case_when(
@@ -769,13 +771,41 @@ ctr_ru_mean_group <- ctr_ru_mean |>
 ctr_ru_mean_group
 
 
-ctr_ru # TOTAL TIV per country/category
-ctr_ru_total # YEARLY TIV AVERAGE of Px per country
-ctr_ru_total_group # grouped by indicators + absolute differences
-
+#ctr_ru # TOTAL TIV per country/category
 ```
 
 We know which countries stopped buying. Now we need to find out how their volume of sales changed in the same period.
+
+```{r}
+
+
+
+ctr_all_mean <- trade |>
+  filter(
+    period %in% c("P1","P2","P3"),
+    recipient %in% ctr_ru_mean$recipient
+  ) |>
+  group_by(period, recipient) |>
+  
+  summarise(
+    TIV = sum(tiv_delivery)
+  ) |>
+  
+  pivot_wider(names_from = period, values_from = TIV) |>
+  
+  mutate(
+    P1 = P1 / 8,
+    P2 = P2 / 8,
+    P3 = P3 / 2,
+    across(c(P1:P3), ~if_else(is.na(.), 0, .)),
+    dP2_1 = P2-P1,
+    dP3_2 = P3-P2
+  )
+  
+  
+  
+
+```
 
 ```{r}
 
@@ -948,8 +978,8 @@ ctr_exp_compare_all_ru |>
   filter(
     group %in% c("A", "B", "D"), # Excludes new clients
   ) |>
-  select(recipient, P3_RU) |>
-  filter(P3_RU > 0)
+  select(recipient, P2_1_change_total) |>
+  filter(P2_1_change_total<0)
   
   
 
@@ -995,7 +1025,7 @@ buyers_imports <- ctr_exp_compare_all_ru |>
     ) |>
   
   tab_header(
-    title = "Change in Traded Volume\nby Russian Arms Importer"
+    title = "Change in Russian partners's trade volume by supplier"
     ) |>
   
   tab_footnote(
@@ -1013,6 +1043,8 @@ buyers_imports <- ctr_exp_compare_all_ru |>
       locations = list(cells_title())
       )
 
+
+buyers_imports
 
 buyers_imports |> gtsave("table_buyers_imports_change.png")
 ```
@@ -1133,7 +1165,7 @@ gainers_cat_items <- trade |>
   filter(
     period %in% c("P1","P2"),
     recipient %in% ctr_ru_loss_tiv_top5_list,
-    supplier %in% ctr_ru_loss_tiv_cat_increase_ctr_list,
+    #supplier %in% ctr_ru_loss_tiv_cat_increase_ctr_list,
     arm_cat %in% ctr_ru_loss_tiv_cat_increase_cat_list
   ) |>
   group_by(period, supplier, recipient, arm_cat, designation) |>
@@ -1225,6 +1257,10 @@ gainers_cat_items_diff_table_group_gt <- lapply(gainers_cat_items_diff_table_gro
 })
 
 
+
+gainers_cat_items_diff_table_group_gt
+
+
 for (i in seq_along(gainers_cat_items_diff_table_group_gt)) {
   gtsave(gainers_cat_items_diff_table_group_gt[[i]],
          filename = paste0("table_exports_winners_",
@@ -1257,4 +1293,29 @@ trade |>
 
 #### ALL ITEMS HAVE SOME SALE IN P1. 
 
+
+
+
+
+gainers_cat_items_diff |>
+ #filter(recipient %in% c("India", "Azerbaijan", "Viet Nam")) |>
+    group_by(recipient, supplier) |>
+  summarise(
+    TIV = sum(TIV_P2)
+  ) |>
+  arrange(recipient, desc(TIV)) |>
+  mutate(
+    cumsum = round(TIV/sum(TIV),2)
+  )
+  
+
+gainers_cat_items_diff |>
+  group_by(recipient) |>
+  summarise(
+    TIV = sum(TIV_P2)
+  ) |>
+  arrange(desc(TIV)) |>
+  mutate(
+    cumsum = cumsum(TIV)/sum(TIV)
+  )
 ```
