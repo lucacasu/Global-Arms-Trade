@@ -357,7 +357,7 @@ The trend was reversed from 1995 as China and India procured Su-27S fighter airc
 The series had a localised peak between 2005 and 2015, averaging 27,605 TIV per year but rapidly decreasing to reach a new all-time low in 2020.
 
 <div align="center">
-  <img src="https://github.com/lucacasu/Arms-Trade/blob/main/plot-images/global_tiv.png" class="center" height="500">
+  <img src="https://github.com/lucacasu/Global-Arms-Trade/tree/main/us_eu_ru_cn_trade/plot_us_eu_ru_cn_trade/global_tiv.png" class="center" height="500">
 </div>
 
 ## What is the value of the assets being traded?
