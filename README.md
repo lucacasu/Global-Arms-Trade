@@ -16,3 +16,13 @@ Compares the exports of the US, EU, Russia, and China from 1995 to 2020, providi
 [Link to project](https://github.com/lucacasu/Global-Arms-Trade/tree/main/russia_trade_decline)
 
 Since Crimea’s invasion in early 2014, long-term strategic partners have nearly ceased placing new orders to Russia. This report explores Russia's decline, its partners and the countries which filled the market gap.
+
+
+
+# BI Tools
+
+Dashboards leveraging open source data
+
+**Tool:** Looker Studio / Google Analytics <br>
+**Language:** SQL <br>
+**Data:** [SIPRI](https://www.sipri.org/databases/armstransfers)
